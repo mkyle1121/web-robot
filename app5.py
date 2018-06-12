@@ -14,9 +14,6 @@ def from_robot(clientid, userdata, message): # callback for from_robot subscribe
 	print(data)
 	response_from_robot = data
 
-
-
-
 myMQTT = AWSIoTMQTTClient('Web')
 myMQTT.configureEndpoint('a111amujev1y9r.iot.us-west-2.amazonaws.com', 8883)
 myMQTT.configureCredentials('/home/mike/keys/root-CA.crt', '/home/mike/keys/Web.private.pem.key', '/home/mike/keys/Web.certificate.pem.crt')
@@ -26,8 +23,7 @@ myMQTT.configureConnectDisconnectTimeout(10)
 myMQTT.connect()
 myMQTT.subscribe('from_robot', 1, from_robot)
 
-
-
+a = 'test'
 
 response_from_robot = ''
 
