@@ -1,6 +1,7 @@
 import flask
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 import json
+import pymysql
 
 def send_to_robot(data):
 	msg = json.dumps({'action':data})
@@ -14,6 +15,7 @@ def from_robot(clientid, userdata, message): # callback for from_robot subscribe
 	print(data)
 	response_from_robot = data
 
+# MQTT IoT connection info
 myMQTT = AWSIoTMQTTClient('Web')
 myMQTT.configureEndpoint('a111amujev1y9r.iot.us-west-2.amazonaws.com', 8883)
 myMQTT.configureCredentials('/home/mike/keys/root-CA.crt', '/home/mike/keys/Web.private.pem.key', '/home/mike/keys/Web.certificate.pem.crt')
@@ -23,17 +25,43 @@ myMQTT.configureConnectDisconnectTimeout(10)
 myMQTT.connect()
 myMQTT.subscribe('from_robot', 1, from_robot)
 
+# DB connection
+with open('../keys/properties') as file:
+	i = file.readlines()
+	username = i[0].rstrip(); password = i[1].rstrip() # rstrip used to remove \n
+connection = pymysql.connect(host = 'localhost', user = username, password = password, db = 'robot')
+cursor = connection.cursor()
 
-a = 'test 456'
-
-
+# Main code info
 response_from_robot = ''
-
 application = flask.Flask(__name__)
-
 @application.route('/')
-def landing():
+def index():
 	return flask.render_template('index.html')
+
+@application.route('/login')
+def login():
+	return flask.render_template('login.html')
+
+@application.route('/auth/login', methods=['POST'])
+def auth_login():
+	username = flask.request.form['username']
+	password = flask.request.form['password']
+	sql = "SELECT * FROM users WHERE user = %s"
+	cursor.execute(sql, (username))
+	print (cursor)
+	result = cursor.fetchall()
+	print(result)
+	for i in result:
+		print(i[0])
+		print(i[1])
+		print(i[2])
+	print(password)
+	if password == i[2]:
+		return flask.render_template('index.html')
+	else:
+		return 'Bad login!'
+
 
 @application.route('/action', methods=["POST"])
 def action():
@@ -91,4 +119,7 @@ def response():
 		print('robot responded')
 		response_from_robot = response_from_robot+' inches' # comes from the callback now and adds volts
 		return flask.render_template('index.html', distance=response_from_robot)
+
+if __name__ == '__main__':
+	application.run(host='0.0.0.0', port=80)
 
