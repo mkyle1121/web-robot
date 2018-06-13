@@ -23,7 +23,9 @@ myMQTT.configureConnectDisconnectTimeout(10)
 myMQTT.connect()
 myMQTT.subscribe('from_robot', 1, from_robot)
 
-a = 'test'
+
+a = 'test 456'
+
 
 response_from_robot = ''
 
